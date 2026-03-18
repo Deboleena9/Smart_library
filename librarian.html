@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Librarian Admin | Modern LMS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 h-screen flex overflow-hidden">
+
+    <aside class="w-64 bg-indigo-900 text-white flex flex-col hidden md:flex">
+        <div class="p-6 border-b border-indigo-800">
+            <h1 class="text-2xl font-bold tracking-wider text-emerald-400">EduLibrary</h1>
+            <p class="text-xs text-indigo-300 mt-1">Admin Portal</p>
+        </div>
+        <nav class="flex-1 px-4 py-6 space-y-2">
+            <a href="#" class="block px-4 py-3 bg-indigo-800 rounded-lg text-sm font-medium transition-colors">📊 Dashboard</a>
+            <a href="#" class="block px-4 py-3 hover:bg-indigo-800 rounded-lg text-sm font-medium transition-colors text-indigo-100">📚 Manage Books</a>
+            <a href="#" class="block px-4 py-3 hover:bg-indigo-800 rounded-lg text-sm font-medium transition-colors text-indigo-100">🎓 Students</a>
+            <a href="#" class="block px-4 py-3 hover:bg-indigo-800 rounded-lg text-sm font-medium transition-colors text-indigo-100">⚙️ Settings</a>
+        </nav>
+        <div class="p-4 border-t border-indigo-800">
+            <button class="w-full px-4 py-2 text-sm text-left text-indigo-200 hover:text-white">Log Out</button>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col overflow-y-auto">
+        
+        <header class="bg-white px-8 py-5 border-b border-slate-200 flex justify-between items-center sticky top-0 z-10">
+            <h2 class="text-xl font-semibold text-slate-800">Overview</h2>
+            <div class="flex items-center gap-4">
+                <span class="text-sm text-slate-500">Welcome, Head Librarian</span>
+                <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold">HL</div>
+            </div>
+        </header>
+
+        <div class="p-8 max-w-7xl mx-auto w-full space-y-8">
+            
+            <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col">
+                    <span class="text-sm font-medium text-slate-500 mb-1">Total Books Available</span>
+                    <span class="text-3xl font-bold text-slate-800">12,450</span>
+                </div>
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col">
+                    <span class="text-sm font-medium text-slate-500 mb-1">Active Checkouts</span>
+                    <span class="text-3xl font-bold text-indigo-600">342</span>
+                </div>
+                <div class="bg-white p-6 rounded-xl border border-red-100 shadow-sm flex flex-col relative overflow-hidden">
+                    <div class="absolute right-0 top-0 w-2 h-full bg-red-500"></div>
+                    <span class="text-sm font-medium text-slate-500 mb-1">Overdue Books</span>
+                    <span class="text-3xl font-bold text-red-600">18</span>
+                    <button class="text-xs text-red-600 font-medium mt-2 text-left hover:underline">Send Reminders &rarr;</button>
+                </div>
+            </section>
+
+            <section class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                <h3 class="text-lg font-semibold mb-4 text-slate-800 border-b pb-2">⚡ Quick Issue Desk</h3>
+                <form class="flex flex-col md:flex-row gap-4 items-end" onsubmit="event.preventDefault(); alert('Simulating backend check... Book Issued!');">
+                    <div class="w-full md:w-1/3">
+                        <label class="block text-sm font-medium text-slate-600 mb-1">Student Regd. No.</label>
+                        <input type="text" placeholder="e.g. 2024CS015" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
+                    </div>
+                    <div class="w-full md:w-1/3">
+                        <label class="block text-sm font-medium text-slate-600 mb-1">Book ISBN</label>
+                        <input type="text" placeholder="Scan or type ISBN" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
+                    </div>
+                    <div class="w-full md:w-1/3">
+                        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition-colors shadow-sm">
+                            Issue Book
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+        </div>
+    </main>
+
+</body>
+</html>
