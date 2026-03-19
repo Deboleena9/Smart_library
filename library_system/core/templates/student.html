@@ -57,56 +57,54 @@
     <script>
         // 1. Dynamic Database (Pulled directly from Django!)
         const libraryCatalog = [
-                {% for book in books %}
-                { 
-                    title: "{{ book.title|escapejs }}", 
-                    author: "{{ book.author|escapejs }}", 
-                    isbn: "{{ book.isbn|escapejs }}", 
-                    available: {{ book.available_copies }} 
-                },
-                {% endfor %}
-            ];
+            {% for book in books %}
+            { 
+                title: "{{ book.title|escapejs }}", 
+                author: "{{ book.author|escapejs }}", 
+                isbn: "{{ book.isbn|escapejs }}", 
+                available: {{ book.available_copies }} 
+            },
+            {% endfor %}
+        ];
 
         // 2. Grab the HTML elements
         const searchInput = document.getElementById('searchInput');
         const searchResults = document.getElementById('searchResults');
 
-        // 3. Listen for every single keystroke
-        searchInput.addEventListener('input', function(e) {
-            const searchTerm = e.target.value.toLowerCase();
-            
-            // Clear results if the search bar is empty
-            if (searchTerm.length === 0) {
-                searchResults.innerHTML = '';
+        // 3. Helper function to draw the books on the screen
+        function displayBooks(booksToShow) {
+            if (booksToShow.length === 0) {
+                searchResults.innerHTML = '<p class="text-slate-500 text-sm italic py-2">No books found in the catalog.</p>';
                 return;
             }
+            searchResults.innerHTML = booksToShow.map(book => `
+                <div class="p-4 border border-slate-100 rounded-lg flex justify-between items-center bg-white hover:shadow-md transition-shadow">
+                    <div>
+                        <h4 class="font-bold text-indigo-900">${book.title}</h4>
+                        <p class="text-xs text-slate-500">By ${book.author} | ISBN: ${book.isbn}</p>
+                    </div>
+                    <div>
+                        ${book.available > 0 
+                            ? `<span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold">Available (${book.available})</span>`
+                            : `<span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold">Checked Out</span>`
+                        }
+                    </div>
+                </div>
+            `).join('');
+        }
 
-            // Filter the mock database
+        // 4. Show ALL books immediately when the page loads!
+        displayBooks(libraryCatalog);
+
+        // 5. Filter books when the student types
+        searchInput.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
             const filteredBooks = libraryCatalog.filter(book => 
                 book.title.toLowerCase().includes(searchTerm) || 
                 book.author.toLowerCase().includes(searchTerm) ||
                 book.isbn.includes(searchTerm)
             );
-
-            // Generate HTML for the results
-            if (filteredBooks.length === 0) {
-                searchResults.innerHTML = '<p class="text-slate-500 text-sm italic py-2">No books found matching your search.</p>';
-            } else {
-                searchResults.innerHTML = filteredBooks.map(book => `
-                    <div class="p-4 border border-slate-100 rounded-lg flex justify-between items-center bg-white hover:shadow-md transition-shadow">
-                        <div>
-                            <h4 class="font-bold text-indigo-900">${book.title}</h4>
-                            <p class="text-xs text-slate-500">By ${book.author} | ISBN: ${book.isbn}</p>
-                        </div>
-                        <div>
-                            ${book.available > 0 
-                                ? `<span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold">Available (${book.available})</span>`
-                                : `<span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold">Checked Out</span>`
-                            }
-                        </div>
-                    </div>
-                `).join('');
-            }
+            displayBooks(filteredBooks); 
         });
     </script>
 </body>
