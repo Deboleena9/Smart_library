@@ -55,14 +55,17 @@
     </main>
 
     <script>
-        // 1. Mock Database (What Django will eventually provide)
+        // 1. Dynamic Database (Pulled directly from Django!)
         const libraryCatalog = [
-            { title: "Python Crash Course", author: "Eric Matthes", isbn: "9781593279288", available: 3 },
-            { title: "Introduction to Algorithms", author: "Thomas H. Cormen", isbn: "9780262033848", available: 0 },
-            { title: "Design Patterns", author: "Erich Gamma", isbn: "9780201633610", available: 5 },
-            { title: "The Pragmatic Programmer", author: "Andrew Hunt", isbn: "9780201616224", available: 1 },
-            { title: "Head First Java", author: "Kathy Sierra", isbn: "9780596009205", available: 0 }
-        ];
+                {% for book in books %}
+                { 
+                    title: "{{ book.title|escapejs }}", 
+                    author: "{{ book.author|escapejs }}", 
+                    isbn: "{{ book.isbn|escapejs }}", 
+                    available: {{ book.available_copies }} 
+                },
+                {% endfor %}
+            ];
 
         // 2. Grab the HTML elements
         const searchInput = document.getElementById('searchInput');

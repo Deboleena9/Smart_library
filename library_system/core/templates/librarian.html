@@ -43,16 +43,16 @@
             <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col">
                     <span class="text-sm font-medium text-slate-500 mb-1">Total Books Available</span>
-                    <span class="text-3xl font-bold text-slate-800">12,450</span>
+                    <span class="text-3xl font-bold text-slate-800">{{ total_books }}</span>
                 </div>
                 <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col">
                     <span class="text-sm font-medium text-slate-500 mb-1">Active Checkouts</span>
-                    <span class="text-3xl font-bold text-indigo-600">342</span>
+                    <span class="text-3xl font-bold text-indigo-600">{{ active_checkouts }}</span>
                 </div>
                 <div class="bg-white p-6 rounded-xl border border-red-100 shadow-sm flex flex-col relative overflow-hidden">
                     <div class="absolute right-0 top-0 w-2 h-full bg-red-500"></div>
                     <span class="text-sm font-medium text-slate-500 mb-1">Overdue Books</span>
-                    <span class="text-3xl font-bold text-red-600">18</span>
+                    <span class="text-3xl font-bold text-red-600">{{ overdue_books }}</span>
                     <button class="text-xs text-red-600 font-medium mt-2 text-left hover:underline">Send Reminders &rarr;</button>
                 </div>
             </section>
