@@ -1,10 +1,34 @@
 from django.shortcuts import render, redirect
-from django.contrib import messages # For success/error popups
+from django.contrib import messages
 from django.utils import timezone
 from datetime import timedelta
 from .models import Book, Transaction, Student
 
-# ... keep your login_view, librarian_dashboard, and student_portal functions here ...
+def login_view(request):
+    return render(request, 'index.html')
+
+def librarian_dashboard(request):
+    # Count the real numbers from the database
+    total_books = Book.objects.count() # Counts unique book titles
+    active_checkouts = Transaction.objects.filter(status='ACTIVE').count()
+    overdue_books = Transaction.objects.filter(status='OVERDUE').count()
+
+    # Package the data to send to the HTML
+    context = {
+        'total_books': total_books,
+        'active_checkouts': active_checkouts,
+        'overdue_books': overdue_books,
+    }
+    return render(request, 'librarian.html', context)
+
+def student_portal(request):
+    # Fetch all books from the database
+    all_books = Book.objects.all()
+    
+    context = {
+        'books': all_books
+    }
+    return render(request, 'student.html', context)
 
 def issue_book(request):
     if request.method == 'POST':
