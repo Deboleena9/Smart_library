@@ -59,14 +59,25 @@
 
             <section class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                 <h3 class="text-lg font-semibold mb-4 text-slate-800 border-b pb-2">⚡ Quick Issue Desk</h3>
-                <form class="flex flex-col md:flex-row gap-4 items-end" onsubmit="event.preventDefault(); alert('Simulating backend check... Book Issued!');">
-                    <div class="w-full md:w-1/3">
+                
+                {% if messages %}
+                    <div class="mb-4">
+                        {% for message in messages %}
+                            <div class="p-3 rounded-lg text-sm font-medium {% if message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-emerald-100 text-emerald-700{% endif %}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <form action="/issue/" method="POST" class="flex flex-col md:flex-row gap-4 items-end">
+                    {% csrf_token %} <div class="w-full md:w-1/3">
                         <label class="block text-sm font-medium text-slate-600 mb-1">Student Regd. No.</label>
-                        <input type="text" placeholder="e.g. 2024CS015" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
+                        <input type="text" name="regd_no" required placeholder="e.g. 2024CS015" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
                     </div>
                     <div class="w-full md:w-1/3">
                         <label class="block text-sm font-medium text-slate-600 mb-1">Book ISBN</label>
-                        <input type="text" placeholder="Scan or type ISBN" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
+                        <input type="text" name="isbn" required placeholder="Scan or type ISBN" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
                     </div>
                     <div class="w-full md:w-1/3">
                         <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition-colors shadow-sm">
