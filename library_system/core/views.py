@@ -25,16 +25,18 @@ def login_view(request):
     return render(request, 'index.html')
 
 def librarian_dashboard(request):
-    # Count the real numbers from the database
-    total_books = Book.objects.count() # Counts unique book titles
+    total_books = Book.objects.count()
     active_checkouts = Transaction.objects.filter(status='ACTIVE').count()
     overdue_books = Transaction.objects.filter(status='OVERDUE').count()
 
-    # Package the data to send to the HTML
+    # NEW: Fetch the list of active transactions, sorted by due date
+    active_transactions = Transaction.objects.filter(status='ACTIVE').order_by('due_date')
+
     context = {
         'total_books': total_books,
         'active_checkouts': active_checkouts,
         'overdue_books': overdue_books,
+        'active_transactions': active_transactions, # Pass them to the HTML
     }
     return render(request, 'librarian.html', context)
 
@@ -98,3 +100,31 @@ def issue_book(request):
         
     # Refresh the dashboard page
     return redirect('librarian')
+
+
+def return_book(request, transaction_id):
+    if request.method == 'POST':
+        try:
+            # Find the exact active transaction
+            transaction = Transaction.objects.get(id=transaction_id, status='ACTIVE')
+            book = transaction.book
+
+            # 1. Update Transaction Status and Return Date
+            transaction.status = 'RETURNED'
+            transaction.return_date = timezone.now()
+            transaction.save()
+
+            # 2. Add the book back to the library's available inventory
+            book.available_copies += 1
+            book.save()
+
+            messages.success(request, f"✅ '{book.title}' was successfully returned by {transaction.student.name}.")
+        except Transaction.DoesNotExist:
+            messages.error(request, "❌ Transaction not found or already returned.")
+
+    return redirect('librarian')
+
+def logout_user(request):
+    # This completely wipes the secure session data
+    request.session.flush() 
+    return redirect('login')
