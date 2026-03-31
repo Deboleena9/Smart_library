@@ -5,6 +5,23 @@ from datetime import timedelta
 from .models import Book, Transaction, Student
 
 def login_view(request):
+    if request.method == 'POST':
+        user_id = request.POST.get('userId').strip()
+        
+        # Route 1: Librarian Login
+        if user_id.lower() == 'admin':
+            return redirect('librarian')
+            
+        # Route 2: Student Login
+        try:
+            student = Student.objects.get(regd_no__iexact=user_id)
+            # Save the student's ID in a secure Django session
+            request.session['student_id'] = str(student.id)
+            return redirect('student')
+        except Student.DoesNotExist:
+            messages.error(request, "❌ Registration Number not found.")
+            return redirect('login')
+
     return render(request, 'index.html')
 
 def librarian_dashboard(request):
@@ -22,11 +39,22 @@ def librarian_dashboard(request):
     return render(request, 'librarian.html', context)
 
 def student_portal(request):
-    # Fetch all books from the database
+    # 1. Check who is logged in
+    student_id = request.session.get('student_id')
+    if not student_id:
+        return redirect('login') # Kick them back to login if not authenticated
+
+    # 2. Fetch their specific data
+    student = Student.objects.get(id=student_id)
     all_books = Book.objects.all()
     
+    # 3. Fetch ONLY the books currently issued to them
+    my_transactions = Transaction.objects.filter(student=student, status='ACTIVE')
+    
     context = {
-        'books': all_books
+        'student': student,
+        'books': all_books,
+        'my_transactions': my_transactions
     }
     return render(request, 'student.html', context)
 
