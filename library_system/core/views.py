@@ -1,3 +1,5 @@
+from django.contrib.auth.models import User
+from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.utils import timezone
@@ -147,3 +149,12 @@ def logout_user(request):
     request.session.flush() 
     messages.success(request, "You have been securely logged out.")
     return redirect('login')
+
+def setup_admin(request):
+    # Check if the admin already exists
+    if not User.objects.filter(username='admin').exists():
+        # Create a new superuser with ID: admin, Password: admin123
+        User.objects.create_superuser('admin', 'admin@college.edu', 'admin123')
+        return HttpResponse("✅ Admin account created successfully! Username: admin | Password: admin123. You can now go to the login page.")
+    
+    return HttpResponse("Admin already exists. You can go log in!")
