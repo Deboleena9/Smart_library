@@ -158,3 +158,57 @@ def setup_admin(request):
         return HttpResponse("✅ Admin account created successfully! Username: admin | Password: admin123. You can now go to the login page.")
     
     return HttpResponse("Admin already exists. You can go log in!")
+
+
+@login_required(login_url='login')
+def manage_books(request):
+    if not request.user.is_superuser:
+        return redirect('student')
+
+    if request.method == 'POST':
+        isbn = request.POST.get('isbn')
+        title = request.POST.get('title')
+        author = request.POST.get('author')
+        copies = int(request.POST.get('copies'))
+
+        try:
+            # Create the new book
+            Book.objects.create(
+                isbn=isbn, title=title, author=author, 
+                total_copies=copies, available_copies=copies
+            )
+            messages.success(request, f"📚 '{title}' was added to the library catalog.")
+        except Exception as e:
+            messages.error(request, "❌ Error: A book with this ISBN might already exist.")
+        
+        return redirect('manage_books')
+
+    books = Book.objects.all().order_by('title')
+    return render(request, 'manage_books.html', {'books': books})
+
+@login_required(login_url='login')
+def manage_students(request):
+    if not request.user.is_superuser:
+        return redirect('student')
+
+    if request.method == 'POST':
+        regd_no = request.POST.get('regd_no')
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        department = request.POST.get('department')
+        password = request.POST.get('password') # The password the librarian assigns
+
+        if User.objects.filter(username=regd_no).exists():
+            messages.error(request, "❌ A student with this Registration Number already exists.")
+        else:
+            # 1. Create the secure login account automatically!
+            User.objects.create_user(username=regd_no, email=email, password=password)
+            
+            # 2. Create the library profile
+            Student.objects.create(regd_no=regd_no, name=name, email=email, department=department)
+            messages.success(request, f"🎓 Student '{name}' added successfully. They can now log in!")
+            
+        return redirect('manage_students')
+
+    students = Student.objects.all().order_by('name')
+    return render(request, 'manage_students.html', {'students': students})

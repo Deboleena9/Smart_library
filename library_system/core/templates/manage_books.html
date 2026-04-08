@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Books | EduLibrary</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style> body { font-family: 'Inter', sans-serif; } </style>
+</head>
+<body class="bg-slate-50 text-slate-800 h-screen flex overflow-hidden">
+
+    <aside class="w-64 bg-indigo-900 text-white flex flex-col hidden md:flex">
+        <div class="p-6 border-b border-indigo-800">
+            <h1 class="text-2xl font-bold tracking-wider text-emerald-400">EduLibrary</h1>
+        </div>
+        <nav class="flex-1 px-4 py-6 space-y-2">
+            <a href="{% url 'librarian' %}" class="block px-4 py-3 hover:bg-indigo-800 rounded-lg text-sm font-medium transition-colors text-indigo-100">📊 Dashboard</a>
+            <a href="{% url 'manage_books' %}" class="block px-4 py-3 bg-indigo-800 rounded-lg text-sm font-medium transition-colors text-white">📚 Manage Books</a>
+            <a href="{% url 'manage_students' %}" class="block px-4 py-3 hover:bg-indigo-800 rounded-lg text-sm font-medium transition-colors text-indigo-100">🎓 Students</a>
+        </nav>
+        <div class="p-4 border-t border-indigo-800">
+            <a href="{% url 'logout' %}" class="block w-full px-4 py-2 text-sm text-left text-indigo-200 hover:text-white transition-colors">Log Out</a>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col overflow-y-auto p-8">
+        <div class="max-w-5xl mx-auto w-full space-y-8">
+            
+            <h2 class="text-2xl font-bold text-slate-800 border-b pb-4">Manage Library Catalog</h2>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="p-4 rounded-lg font-medium {% if message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-emerald-100 text-emerald-700{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <section class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                <h3 class="text-lg font-semibold mb-4 text-indigo-900">➕ Add New Book</h3>
+                <form action="{% url 'manage_books' %}" method="POST" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+                    {% csrf_token %}
+                    <div class="lg:col-span-1">
+                        <label class="block text-xs font-medium text-slate-500 mb-1">ISBN</label>
+                        <input type="text" name="isbn" required class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+                    <div class="lg:col-span-1">
+                        <label class="block text-xs font-medium text-slate-500 mb-1">Title</label>
+                        <input type="text" name="title" required class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+                    <div class="lg:col-span-1">
+                        <label class="block text-xs font-medium text-slate-500 mb-1">Author</label>
+                        <input type="text" name="author" required class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+                    <div class="lg:col-span-1">
+                        <label class="block text-xs font-medium text-slate-500 mb-1">Total Copies</label>
+                        <input type="number" name="copies" min="1" required class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+                    <div class="lg:col-span-1">
+                        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-4 rounded transition-colors">Save Book</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                 <h3 class="text-lg font-semibold mb-4 text-slate-800">📖 Current Catalog</h3>
+                 <table class="w-full text-left text-sm">
+                    <thead>
+                        <tr class="border-b text-slate-500"><th class="pb-2">Title / Author</th><th class="pb-2">ISBN</th><th class="pb-2">Inventory</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for book in books %}
+                        <tr class="border-b hover:bg-slate-50"><td class="py-3 font-medium">{{ book.title }} <span class="text-xs text-slate-400 block">{{ book.author }}</span></td><td class="py-3 text-slate-500">{{ book.isbn }}</td><td class="py-3"><span class="bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-xs">{{ book.available_copies }} available</span> (of {{ book.total_copies }})</td></tr>
+                        {% endfor %}
+                    </tbody>
+                 </table>
+            </section>
+        </div>
+    </main>
+</body>
+</html>
