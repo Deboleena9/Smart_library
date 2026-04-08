@@ -212,3 +212,27 @@ def manage_students(request):
 
     students = Student.objects.all().order_by('name')
     return render(request, 'manage_students.html', {'students': students})
+
+@login_required(login_url='login')
+def delete_student(request, student_id):
+    if not request.user.is_superuser:
+        return redirect('student')
+
+    if request.method == 'POST':
+        try:
+            student = Student.objects.get(id=student_id)
+            
+            # Find and delete their secure Django login account
+            user_account = User.objects.filter(username=student.regd_no).first()
+            if user_account:
+                user_account.delete()
+                
+            # Delete their library profile
+            student_name = student.name
+            student.delete()
+            
+            messages.success(request, f"🗑️ Success: '{student_name}' and their login access have been permanently removed.")
+        except Student.DoesNotExist:
+            messages.error(request, "❌ Error: Student not found.")
+            
+    return redirect('manage_students')
