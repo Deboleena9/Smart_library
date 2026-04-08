@@ -18,7 +18,8 @@
             <p class="text-xs text-indigo-300 mt-1">Admin Portal</p>
         </div>
         <nav class="flex-1 px-4 py-6 space-y-2">
-            <a href="{% url 'librarian' %}" class="block px-4 py-3 bg-indigo-800 rounded-lg text-sm font-medium transition-colors text-white">📊 Dashboard</a>
+            <a href="{% url 'librarian' %}" class="block px-4 py-3 hover:bg-indigo-800 rounded-lg text-sm font-medium transition-colors text-indigo-100">📊 Dashboard</a>
+            <a href="{% url 'manage_issues' %}" class="block px-4 py-3 hover:bg-indigo-800 rounded-lg text-sm font-medium transition-colors text-indigo-100">⚡ Issue Desk</a>
             <a href="{% url 'manage_books' %}" class="block px-4 py-3 hover:bg-indigo-800 rounded-lg text-sm font-medium transition-colors text-indigo-100">📚 Manage Books</a>
             <a href="{% url 'manage_students' %}" class="block px-4 py-3 hover:bg-indigo-800 rounded-lg text-sm font-medium transition-colors text-indigo-100">🎓 Students</a>
         </nav>

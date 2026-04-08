@@ -119,7 +119,7 @@ def issue_book(request):
         except Book.DoesNotExist:
             messages.error(request, "❌ Book ISBN not found.")
         
-    return redirect('librarian')
+    return redirect('manage_issues')
 
 @login_required(login_url='login')
 def return_book(request, transaction_id):
@@ -142,7 +142,7 @@ def return_book(request, transaction_id):
         except Transaction.DoesNotExist:
             messages.error(request, "❌ Transaction not found or already returned.")
 
-    return redirect('librarian')
+    return redirect('manage_issues')
 
 def logout_user(request):
     logout(request) # Uses Django's secure logout
@@ -236,3 +236,13 @@ def delete_student(request, student_id):
             messages.error(request, "❌ Error: Student not found.")
             
     return redirect('manage_students')
+
+
+@login_required(login_url='login')
+def manage_issues(request):
+    if not request.user.is_superuser:
+        return redirect('student')
+    
+    # Fetch the active transactions to display in the return table
+    active_transactions = Transaction.objects.filter(status='ACTIVE').order_by('due_date')
+    return render(request, 'manage_issues.html', {'active_transactions': active_transactions})

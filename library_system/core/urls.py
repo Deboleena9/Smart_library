@@ -11,7 +11,9 @@ urlpatterns = [
     path('setup-admin/', views.setup_admin, name='setup_admin'),
     path('manage-books/', views.manage_books, name='manage_books'),
     path('manage-students/', views.manage_students, name='manage_students'),
+    path('manage-issues/', views.manage_issues, name='manage_issues'),
     
     # NEW DELETE ROUTE
     path('delete-student/<uuid:student_id>/', views.delete_student, name='delete_student'),
+
 ]
