@@ -252,3 +252,28 @@ def delete_book(request, book_id):
             messages.error(request, "❌ Error: Book not found.")
             
     return redirect('manage_books')
+
+@login_required(login_url='login')
+def manage_settings(request):
+    if not request.user.is_superuser:
+        return redirect('student')
+
+    # Get the existing setting or create one if it doesn't exist yet
+    setting, created = LibrarySetting.objects.get_or_create(id=1)
+
+    if request.method == 'POST':
+        # Grab the text
+        institute_name = request.POST.get('institute_name')
+        
+        # Check if a new file was actually uploaded
+        if 'background_image' in request.FILES:
+            setting.background_image = request.FILES['background_image']
+        
+        # Save the changes
+        setting.institute_name = institute_name
+        setting.save()
+        
+        messages.success(request, "⚙️ Library settings updated successfully.")
+        return redirect('manage_settings')
+
+    return render(request, 'manage_settings.html', {'setting': setting})

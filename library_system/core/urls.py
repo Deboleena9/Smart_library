@@ -17,6 +17,8 @@ urlpatterns = [
     path('delete-student/<uuid:student_id>/', views.delete_student, name='delete_student'),
     # Add this right below your delete_student route
     path('delete-book/<uuid:book_id>/', views.delete_book, name='delete_book'),
+    # Add this to your urlpatterns
+    path('settings/', views.manage_settings, name='manage_settings'),
 
     
 ]
