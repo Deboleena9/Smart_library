@@ -43,20 +43,17 @@ def login_view(request):
 # Security Lock: Kicks unauthenticated users back to the login page
 @login_required(login_url='login')
 def librarian_dashboard(request):
-    # Security Lock: Only superusers (admins) can see this page
     if not request.user.is_superuser:
         return redirect('student')
 
     total_books = Book.objects.count()
     active_checkouts = Transaction.objects.filter(status='ACTIVE').count()
     overdue_books = Transaction.objects.filter(status='OVERDUE').count()
-    active_transactions = Transaction.objects.filter(status='ACTIVE').order_by('due_date')
 
     context = {
         'total_books': total_books,
         'active_checkouts': active_checkouts,
         'overdue_books': overdue_books,
-        'active_transactions': active_transactions,
     }
     return render(request, 'librarian.html', context)
 
