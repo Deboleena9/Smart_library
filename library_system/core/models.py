@@ -44,7 +44,7 @@ class Transaction(models.Model):
 
 class LibrarySetting(models.Model):
     institute_name = models.CharField(max_length=200, default="EduLibrary Dashboard")
-    background_image = models.ImageField(upload_to='backgrounds/', null=True, blank=True)
+    
 
     def __str__(self):
         return "System Settings (Edit Me)"
