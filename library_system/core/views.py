@@ -6,46 +6,39 @@ from django.utils import timezone
 from datetime import timedelta
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from .models import Book, Transaction, Student
+from .models import Book, Transaction, Student, LibrarySetting
 
 def login_view(request):
-    # If they are already logged in, skip the login page entirely
     if request.user.is_authenticated:
         if request.user.is_superuser:
             return redirect('librarian')
         return redirect('student')
 
     if request.method == 'POST':
-        # Grab the data from the HTML form
         user_id = request.POST.get('userId').strip()
         password = request.POST.get('password').strip()
-        
-        # MAGIC HAPPENS HERE: Django securely checks the hashed password
         user = authenticate(request, username=user_id, password=password)
         
         if user is not None:
-            login(request, user) # This creates the secure session
-            
-            # Route 1: Librarian (Admin)
+            login(request, user)
             if user.is_superuser:
                 return redirect('librarian')
-            
-            # Route 2: Student
             else:
                 try:
-                    # Link the logged-in Auth User to our Student database via regd_no
                     student = Student.objects.get(regd_no__iexact=user.username)
                     request.session['student_id'] = str(student.id)
                     return redirect('student')
                 except Student.DoesNotExist:
                     logout(request)
-                    messages.error(request, "❌ System error: Student profile not linked to this account.")
+                    messages.error(request, "❌ Profile not linked.")
                     return redirect('login')
         else:
-            messages.error(request, "❌ Invalid User ID or Password.")
+            messages.error(request, "❌ Invalid ID or Password.")
             return redirect('login')
 
-    return render(request, 'index.html')
+    # GRAB THE SETTINGS TO SEND TO THE HTML
+    setting = LibrarySetting.objects.first()
+    return render(request, 'index.html', {'setting': setting})
 
 # Security Lock: Kicks unauthenticated users back to the login page
 @login_required(login_url='login')
@@ -246,3 +239,19 @@ def manage_issues(request):
     # Fetch the active transactions to display in the return table
     active_transactions = Transaction.objects.filter(status='ACTIVE').order_by('due_date')
     return render(request, 'manage_issues.html', {'active_transactions': active_transactions})
+
+@login_required(login_url='login')
+def delete_book(request, book_id):
+    if not request.user.is_superuser:
+        return redirect('student')
+
+    if request.method == 'POST':
+        try:
+            book = Book.objects.get(id=book_id)
+            book_title = book.title
+            book.delete()
+            messages.success(request, f"🗑️ Book '{book_title}' deleted successfully.")
+        except Book.DoesNotExist:
+            messages.error(request, "❌ Error: Book not found.")
+            
+    return redirect('manage_books')

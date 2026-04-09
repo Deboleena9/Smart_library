@@ -67,11 +67,26 @@
                  <h3 class="text-lg font-semibold mb-4 text-slate-800">📖 Current Catalog</h3>
                  <table class="w-full text-left text-sm">
                     <thead>
-                        <tr class="border-b text-slate-500"><th class="pb-2">Title / Author</th><th class="pb-2">ISBN</th><th class="pb-2">Inventory</th></tr>
+                        <tr class="border-b text-slate-500">
+                            <th class="pb-2">Title / Author</th>
+                            <th class="pb-2">ISBN</th>
+                            <th class="pb-2">Inventory</th>
+                            <th class="pb-2 text-right">Action</th>
+                        </tr>
                     </thead>
                     <tbody>
                         {% for book in books %}
-                        <tr class="border-b hover:bg-slate-50"><td class="py-3 font-medium">{{ book.title }} <span class="text-xs text-slate-400 block">{{ book.author }}</span></td><td class="py-3 text-slate-500">{{ book.isbn }}</td><td class="py-3"><span class="bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-xs">{{ book.available_copies }} available</span> (of {{ book.total_copies }})</td></tr>
+                        <tr class="border-b hover:bg-slate-50">
+                            <td class="py-3 font-medium">{{ book.title }} <span class="text-xs text-slate-400 block">{{ book.author }}</span></td>
+                            <td class="py-3 text-slate-500">{{ book.isbn }}</td>
+                            <td class="py-3"><span class="bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-xs">{{ book.available_copies }} available</span></td>
+                            <td class="py-3 text-right">
+                                <form action="{% url 'delete_book' book.id %}" method="POST" onsubmit="return confirm('Are you sure you want to permanently delete this book from the catalog?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="text-red-600 hover:text-red-800 font-medium text-xs bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded transition-colors shadow-sm">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
                         {% endfor %}
                     </tbody>
                  </table>

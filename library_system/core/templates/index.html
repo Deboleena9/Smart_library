@@ -11,9 +11,21 @@
 <body class="bg-gradient-to-br from-indigo-900 via-slate-800 to-emerald-900 h-screen flex items-center justify-center p-4">
 
     <div class="bg-white p-8 md:p-10 rounded-2xl shadow-2xl w-full max-w-md transform transition-all">
-        <div class="text-center mb-8">
-            <h1 class="text-3xl font-bold tracking-tight text-indigo-900 mb-1">EduLibrary</h1>
-            <p class="text-sm text-slate-500">Welcome back! Please enter your details.</p>
+       <div class="hidden lg:flex w-1/2 flex-col justify-between p-12 text-white relative bg-indigo-900">
+            {% if setting and setting.background_image %}
+            <div class="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-overlay" style="background-image: url('{{ setting.background_image.url }}');"></div>
+            {% endif %}
+            
+            <div class="relative z-10">
+                <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm mb-6">
+                    <span class="text-2xl">📚</span>
+                </div>
+                <h1 class="text-4xl font-bold mb-2">{% if setting %}{{ setting.institute_name }}{% else %}EduLibrary System{% endif %}</h1>
+                <p class="text-indigo-200 text-lg">Next-generation resource management.</p>
+            </div>
+            <div class="relative z-10 text-sm text-indigo-300">
+                <p>&copy; 2026 Library Management System.</p>
+            </div>
         </div>
 
         <form method="POST" action="{% url 'login' %}" class="space-y-6">

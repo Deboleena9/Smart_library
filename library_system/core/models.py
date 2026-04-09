@@ -40,3 +40,11 @@ class Transaction(models.Model):
 
     def __str__(self):
         return f"{self.book.title} issued to {self.student.name}"
+    
+
+class LibrarySetting(models.Model):
+    institute_name = models.CharField(max_length=200, default="EduLibrary Dashboard")
+    background_image = models.ImageField(upload_to='backgrounds/', null=True, blank=True)
+
+    def __str__(self):
+        return "System Settings (Edit Me)"

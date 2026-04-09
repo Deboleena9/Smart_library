@@ -15,5 +15,8 @@ urlpatterns = [
     
     # NEW DELETE ROUTE
     path('delete-student/<uuid:student_id>/', views.delete_student, name='delete_student'),
+    # Add this right below your delete_student route
+    path('delete-book/<uuid:book_id>/', views.delete_book, name='delete_book'),
 
+    
 ]
