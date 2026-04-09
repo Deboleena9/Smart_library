@@ -11,7 +11,7 @@
 
     <aside class="w-64 bg-indigo-900 text-white flex flex-col hidden md:flex">
         <div class="p-6 border-b border-indigo-800">
-            <h1 class="text-2xl font-bold tracking-wider text-emerald-400">EduLibrary</h1>
+            <h1 class="text-2xl font-bold tracking-wider text-emerald-400">{% if setting %}{{ setting.institute_name }}{% else %}EduLibrary{% endif %}</h1>
         </div>
         <nav class="flex-1 px-4 py-6 space-y-2">
             <a href="{% url 'librarian' %}" class="block px-4 py-3 hover:bg-indigo-800 rounded-lg text-sm font-medium transition-colors text-indigo-100">📊 Dashboard</a>

@@ -44,7 +44,8 @@ class Transaction(models.Model):
 
 class LibrarySetting(models.Model):
     institute_name = models.CharField(max_length=200, default="EduLibrary Dashboard")
-    
+    # NEW FIELD: 0 will represent "Not Fixed/Unlimited"
+    issue_days = models.IntegerField(default=15) 
 
     def __str__(self):
         return "System Settings (Edit Me)"

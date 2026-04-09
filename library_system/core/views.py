@@ -36,24 +36,24 @@ def login_view(request):
             messages.error(request, "❌ Invalid ID or Password.")
             return redirect('login')
 
-    # GRAB THE SETTINGS TO SEND TO THE HTML
     setting = LibrarySetting.objects.first()
     return render(request, 'index.html', {'setting': setting})
 
-# Security Lock: Kicks unauthenticated users back to the login page
 @login_required(login_url='login')
 def librarian_dashboard(request):
     if not request.user.is_superuser:
         return redirect('student')
 
-    total_books = Book.objects.count()
-    active_checkouts = Transaction.objects.filter(status='ACTIVE').count()
-    overdue_books = Transaction.objects.filter(status='OVERDUE').count()
+    # FIX 1 & 2: Added setting and active_transactions back to the dashboard!
+    setting = LibrarySetting.objects.first()
+    active_transactions = Transaction.objects.filter(status='ACTIVE').order_by('due_date')
 
     context = {
-        'total_books': total_books,
-        'active_checkouts': active_checkouts,
-        'overdue_books': overdue_books,
+        'total_books': Book.objects.count(),
+        'active_checkouts': active_transactions.count(),
+        'overdue_books': Transaction.objects.filter(status='OVERDUE').count(),
+        'active_transactions': active_transactions,
+        'setting': setting
     }
     return render(request, 'librarian.html', context)
 
@@ -64,14 +64,11 @@ def student_portal(request):
         logout(request)
         return redirect('login')
 
-    student = Student.objects.get(id=student_id)
-    all_books = Book.objects.all()
-    my_transactions = Transaction.objects.filter(student=student, status='ACTIVE')
-    
     context = {
-        'student': student,
-        'books': all_books,
-        'my_transactions': my_transactions
+        'student': Student.objects.get(id=student_id),
+        'books': Book.objects.all(),
+        'my_transactions': Transaction.objects.filter(student_id=student_id, status='ACTIVE'),
+        'setting': LibrarySetting.objects.first()
     }
     return render(request, 'student.html', context)
 
@@ -89,20 +86,22 @@ def issue_book(request):
             book = Book.objects.get(isbn=isbn)
 
             if book.available_copies > 0:
-                due_date = timezone.now() + timedelta(days=14)
-                Transaction.objects.create(
-                    book=book,
-                    student=student,
-                    due_date=due_date,
-                    status='ACTIVE'
-                )
+                # FIX 3: Apply the custom due period!
+                setting = LibrarySetting.objects.first()
+                issue_days = setting.issue_days if setting else 15
                 
+                # If 0 (Not Fixed), set due date 100 years into the future
+                if issue_days == 0:
+                    due_date = timezone.now() + timedelta(days=36500)
+                else:
+                    due_date = timezone.now() + timedelta(days=issue_days)
+
+                Transaction.objects.create(book=book, student=student, due_date=due_date, status='ACTIVE')
                 book.available_copies -= 1
                 book.save()
-                
                 messages.success(request, f"⚡ Success! '{book.title}' issued to {student.name}.")
             else:
-                messages.error(request, f"❌ Sorry, '{book.title}' is currently out of stock.")
+                messages.error(request, f"❌ Sorry, '{book.title}' is out of stock.")
                 
         except Student.DoesNotExist:
             messages.error(request, "❌ Student Registration Number not found.")
@@ -119,156 +118,98 @@ def return_book(request, transaction_id):
     if request.method == 'POST':
         try:
             transaction = Transaction.objects.get(id=transaction_id, status='ACTIVE')
-            book = transaction.book
-
             transaction.status = 'RETURNED'
             transaction.return_date = timezone.now()
             transaction.save()
 
-            book.available_copies += 1
-            book.save()
-
-            messages.success(request, f"✅ '{book.title}' was successfully returned by {transaction.student.name}.")
+            transaction.book.available_copies += 1
+            transaction.book.save()
+            messages.success(request, f"✅ '{transaction.book.title}' was successfully returned.")
         except Transaction.DoesNotExist:
             messages.error(request, "❌ Transaction not found or already returned.")
 
     return redirect('manage_issues')
 
 def logout_user(request):
-    logout(request) # Uses Django's secure logout
+    logout(request)
     request.session.flush() 
     messages.success(request, "You have been securely logged out.")
     return redirect('login')
 
 def setup_admin(request):
-    # Check if the admin already exists
     if not User.objects.filter(username='admin').exists():
-        # Create a new superuser with ID: admin, Password: admin123
         User.objects.create_superuser('admin', 'admin@college.edu', 'admin123')
-        return HttpResponse("✅ Admin account created successfully! Username: admin | Password: admin123. You can now go to the login page.")
-    
+        return HttpResponse("✅ Admin account created successfully! Username: admin | Password: admin123.")
     return HttpResponse("Admin already exists. You can go log in!")
-
 
 @login_required(login_url='login')
 def manage_books(request):
-    if not request.user.is_superuser:
-        return redirect('student')
-
+    if not request.user.is_superuser: return redirect('student')
     if request.method == 'POST':
-        isbn = request.POST.get('isbn')
-        title = request.POST.get('title')
-        author = request.POST.get('author')
-        copies = int(request.POST.get('copies'))
-
         try:
-            # Create the new book
             Book.objects.create(
-                isbn=isbn, title=title, author=author, 
-                total_copies=copies, available_copies=copies
+                isbn=request.POST.get('isbn'), title=request.POST.get('title'), 
+                author=request.POST.get('author'), total_copies=int(request.POST.get('copies')), 
+                available_copies=int(request.POST.get('copies'))
             )
-            messages.success(request, f"📚 '{title}' was added to the library catalog.")
-        except Exception as e:
+            messages.success(request, "📚 Book added to catalog.")
+        except Exception:
             messages.error(request, "❌ Error: A book with this ISBN might already exist.")
-        
         return redirect('manage_books')
 
-    books = Book.objects.all().order_by('title')
-    return render(request, 'manage_books.html', {'books': books})
+    return render(request, 'manage_books.html', {'books': Book.objects.all().order_by('title'), 'setting': LibrarySetting.objects.first()})
 
 @login_required(login_url='login')
 def manage_students(request):
-    if not request.user.is_superuser:
-        return redirect('student')
-
+    if not request.user.is_superuser: return redirect('student')
     if request.method == 'POST':
         regd_no = request.POST.get('regd_no')
-        name = request.POST.get('name')
-        email = request.POST.get('email')
-        department = request.POST.get('department')
-        password = request.POST.get('password') # The password the librarian assigns
-
         if User.objects.filter(username=regd_no).exists():
             messages.error(request, "❌ A student with this Registration Number already exists.")
         else:
-            # 1. Create the secure login account automatically!
-            User.objects.create_user(username=regd_no, email=email, password=password)
-            
-            # 2. Create the library profile
-            Student.objects.create(regd_no=regd_no, name=name, email=email, department=department)
-            messages.success(request, f"🎓 Student '{name}' added successfully. They can now log in!")
-            
+            User.objects.create_user(username=regd_no, email=request.POST.get('email'), password=request.POST.get('password'))
+            Student.objects.create(regd_no=regd_no, name=request.POST.get('name'), email=request.POST.get('email'), department=request.POST.get('department'))
+            messages.success(request, "🎓 Student added successfully.")
         return redirect('manage_students')
 
-    students = Student.objects.all().order_by('name')
-    return render(request, 'manage_students.html', {'students': students})
+    return render(request, 'manage_students.html', {'students': Student.objects.all().order_by('name'), 'setting': LibrarySetting.objects.first()})
 
 @login_required(login_url='login')
 def delete_student(request, student_id):
-    if not request.user.is_superuser:
-        return redirect('student')
-
+    if not request.user.is_superuser: return redirect('student')
     if request.method == 'POST':
         try:
             student = Student.objects.get(id=student_id)
-            
-            # Find and delete their secure Django login account
             user_account = User.objects.filter(username=student.regd_no).first()
-            if user_account:
-                user_account.delete()
-                
-            # Delete their library profile
-            student_name = student.name
+            if user_account: user_account.delete()
             student.delete()
-            
-            messages.success(request, f"🗑️ Success: '{student_name}' and their login access have been permanently removed.")
-        except Student.DoesNotExist:
-            messages.error(request, "❌ Error: Student not found.")
-            
+            messages.success(request, "🗑️ Success: Student and login access permanently removed.")
+        except Student.DoesNotExist: pass
     return redirect('manage_students')
-
-
-@login_required(login_url='login')
-def manage_issues(request):
-    if not request.user.is_superuser:
-        return redirect('student')
-    
-    # Fetch the active transactions to display in the return table
-    active_transactions = Transaction.objects.filter(status='ACTIVE').order_by('due_date')
-    return render(request, 'manage_issues.html', {'active_transactions': active_transactions})
 
 @login_required(login_url='login')
 def delete_book(request, book_id):
-    if not request.user.is_superuser:
-        return redirect('student')
-
+    if not request.user.is_superuser: return redirect('student')
     if request.method == 'POST':
         try:
-            book = Book.objects.get(id=book_id)
-            book_title = book.title
-            book.delete()
-            messages.success(request, f"🗑️ Book '{book_title}' deleted successfully.")
-        except Book.DoesNotExist:
-            messages.error(request, "❌ Error: Book not found.")
-            
+            Book.objects.get(id=book_id).delete()
+            messages.success(request, "🗑️ Book deleted successfully.")
+        except Book.DoesNotExist: pass
     return redirect('manage_books')
 
+@login_required(login_url='login')
+def manage_issues(request):
+    if not request.user.is_superuser: return redirect('student')
+    return render(request, 'manage_issues.html', {'active_transactions': Transaction.objects.filter(status='ACTIVE').order_by('due_date'), 'setting': LibrarySetting.objects.first()})
 
 @login_required(login_url='login')
 def manage_settings(request):
-    if not request.user.is_superuser:
-        return redirect('student')
-
-    # Fetch existing setting or create a blank one
-    setting, created = LibrarySetting.objects.get_or_create(id=1)
-
+    if not request.user.is_superuser: return redirect('student')
+    setting, _ = LibrarySetting.objects.get_or_create(id=1)
     if request.method == 'POST':
-        # Just grab and save the text
-        institute_name = request.POST.get('institute_name')
-        setting.institute_name = institute_name
+        setting.institute_name = request.POST.get('institute_name')
+        setting.issue_days = int(request.POST.get('issue_days')) # Save the due period
         setting.save()
-        
-        messages.success(request, "⚙️ Library name updated successfully.")
+        messages.success(request, "⚙️ Library settings updated successfully.")
         return redirect('manage_settings')
-
     return render(request, 'manage_settings.html', {'setting': setting})
